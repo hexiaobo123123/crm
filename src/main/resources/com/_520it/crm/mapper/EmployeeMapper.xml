@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com._520it.crm.mapper.EmployeeMapper" >
+  <resultMap id="BaseResultMap" type="com._520it.crm.domain.Employee" >
+    <id column="id" property="id" />
+    <result column="username" property="username" />
+    <result column="realName" property="realname" />
+    <result column="password" property="password" />
+    <result column="tel" property="tel" />
+    <result column="email" property="email" />
+    <result column="inputTime" property="inputtime"  />
+    <result column="state" property="state"  />
+    <result column="admin" property="admin" />
+    <association property="dept" javaType="com._520it.crm.domain.Department">
+      <id property="id" column="did"></id>
+      <result property="name" column="dname"></result>
+    </association>
+  </resultMap>
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Long" >
+    delete from employee
+    where id = #{id}
+  </delete>
+  <insert id="insert" parameterType="com._520it.crm.domain.Employee" useGeneratedKeys="true" keyProperty="id" >
+    insert into employee (username, realName, password, 
+      tel, email, dept_id, 
+      inputTime, state, admin)
+    values (#{username}, #{realname}, #{password}, 
+      #{tel}, #{email}, #{dept.id},
+      #{inputtime}, #{state}, #{admin})
+  </insert>
+  <update id="updateByPrimaryKey" parameterType="com._520it.crm.domain.Employee" >
+    update employee
+    set username = #{username},
+      realName = #{realname},
+      tel = #{tel},
+      email = #{email},
+      dept_id = #{dept.id}
+    where id = #{id}
+  </update>
+  <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+    select id, username, realName, password, tel, email, dept_id, inputTime, state, admin
+    from employee
+    where id = #{id}
+  </select>
+  <select id="selectAll" resultMap="BaseResultMap" >
+    select id, username, realName, password, tel, email, dept_id, inputTime, state, admin
+    from employee
+  </select>
+  <sql id="wheresql">
+    <where>
+      <if test="keyword!=null">
+        (
+        emp.username like concat ('%',#{keyword},'%')
+        OR
+        emp.realname  like concat ('%',#{keyword},'%')
+        )
+      </if>
+
+    </where>
+
+  </sql>
+  <select id="queryByTotal" resultType="Long">
+    SELECT count(*) FROM employee emp
+    <include refid="wheresql"></include>
+
+  </select>
+  <select id="queryByRows" resultMap="BaseResultMap">
+    SELECT emp.id,emp.username, emp.realName,
+    emp.tel, emp.email, emp.dept_id,
+    emp.inputTime, emp.state, emp.admin,dept.id did ,dept.name dname
+    from employee emp LEFT JOIN department dept
+    ON (emp.dept_id=dept.id)
+    <include refid="wheresql"></include>
+    limit #{start},#{rows}
+
+  </select>
+  <update id="changeState">
+    UPDATE employee set state=-1 WHERE id=#{empId}
+  </update>
+  <insert id="insertRole">
+    INSERT INTO employee_role (employee_id,role_id) VALUES (#{empId},#{roleId})
+
+  </insert>
+  <delete id="deleteByRoleId">
+
+    DELETE FROM employee_role WHERE employee_id=#{id}
+  </delete>
+</mapper>
